@@ -83,6 +83,28 @@
         <button onclick="generateReport()">إظهار تقرير اليوم</button>
         <div id="reportContainer"></div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCmpiBFNmEm9BTaOWS5S7blm6hBm75yiOw",
+  authDomain: "daily-bible-reading-6903b.firebaseapp.com",
+  projectId: "daily-bible-reading-6903b",
+  storageBucket: "daily-bible-reading-6903b.appspot.com",
+  messagingSenderId: "422582479606",
+  appId: "1:422582479606:web:017168d5b9d2f23a8a9ad7",
+  measurementId: "G-XEN3V1MB2Z"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore(); // أو استخدام firebase.database() لـ Realtime Database
+</script>
+
 
     <script src="script.js"></script>
 </body>
