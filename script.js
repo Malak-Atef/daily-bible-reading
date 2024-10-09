@@ -1,3 +1,19 @@
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCmpiBFNmEm9BTaOWS5S7blm6hBm75yiOw",
+    authDomain: "daily-bible-reading-6903b.firebaseapp.com",
+    projectId: "daily-bible-reading-6903b",
+    storageBucket: "daily-bible-reading-6903b.appspot.com",
+    messagingSenderId: "422582479606",
+    appId: "1:422582479606:web:017168d5b9d2f23a8a9ad7",
+    measurementId: "G-XEN3V1MB2Z"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const analytics = firebase.analytics();
+
 // قائمة الإصحاحات من إنجيل يوحنا
 const chapters = [
     "إصحاح 1: نص الإصحاح",
@@ -65,7 +81,7 @@ function confirmChapterRead() {
     document.getElementById('confirmReading').style.display = 'none';
 }
 
-// تسجيل إتمام الخلوة في LocalStorage مع الإجابات والتاريخ والوقت
+// تسجيل إتمام الخلوة في Firebase مع الإجابات والتاريخ والوقت
 function markAsCompleted() {
     const userName = document.getElementById('userName').value.trim();
     if (userName === "") {
@@ -90,16 +106,16 @@ function markAsCompleted() {
         return;
     }
 
-    const completedUsers = JSON.parse(localStorage.getItem(`day_${daysPassed}_users`) || "[]");
-
-    // تسجيل التاريخ والوقت
-    const currentDateTime = new Date().toLocaleString();
-    const userEntry = { name: userName, answers: answers, completedAt: currentDateTime };
-
-    if (!completedUsers.some(user => user.name === userName)) {
-        completedUsers.push(userEntry);
-        localStorage.setItem(`day_${daysPassed}_users`, JSON.stringify(completedUsers));
-    }
+    // Save to Firestore
+    db.collection('retreats').add({
+        name: userName,
+        answers: answers,
+        date: firebase.firestore.Timestamp.fromDate(new Date())
+    }).then(() => {
+        alert('تم تسجيل إتمام الخلوة في Firebase. شكرا! 🌟');
+    }).catch((error) => {
+        console.error('خطأ في تسجيل البيانات:', error);
+    });
 
     localStorage.setItem(`day_${daysPassed}_completed`, 'completed');
     document.getElementById('statusMessage').textContent = 'تم تسجيل إتمام الخلوة. شكرا! 🌟';
@@ -115,17 +131,22 @@ function generateReport() {
         return;
     }
 
-    const completedUsers = JSON.parse(localStorage.getItem(`day_${daysPassed}_users`) || "[]");
-    const reportContainer = document.getElementById('reportContainer');
-    reportContainer.innerHTML = '';
+    db.collection('retreats').get().then((querySnapshot) => {
+        const reportContainer = document.getElementById('reportContainer');
+        reportContainer.innerHTML = '';
 
-    if (completedUsers.length > 0) {
-        completedUsers.forEach((user) => {
+        if (querySnapshot.empty) {
+            reportContainer.textContent = 'لم يتم تسجيل أي شخص لهذا اليوم. 😔';
+            return;
+        }
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
             const userReport = document.createElement('div');
-            userReport.innerHTML = `<strong>${user.name}:</strong> (أتم الخلوة في: ${user.completedAt})`;
+            userReport.innerHTML = `<strong>${data.name}:</strong> (أتم الخلوة في: ${data.date.toDate()})`;
 
             const answerList = document.createElement('ul');
-            user.answers.forEach((answer, index) => {
+            data.answers.forEach((answer, index) => {
                 const answerItem = document.createElement('li');
                 answerItem.textContent = `إجابة سؤال ${index + 1}: ${answer}`;
                 answerList.appendChild(answerItem);
@@ -133,9 +154,9 @@ function generateReport() {
             userReport.appendChild(answerList);
             reportContainer.appendChild(userReport);
         });
-    } else {
-        reportContainer.textContent = 'لم يتم تسجيل أي شخص لهذا اليوم. 😔';
-    }
+    }).catch((error) => {
+        console.error('خطأ في استرجاع التقرير:', error);
+    });
 }
 
 // بدء عرض الإصحاح
