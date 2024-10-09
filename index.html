@@ -3,90 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>برنامج الخلوة اليومية - شباب ثانوي بكنيسة نهضة القداسة بالحافظية</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f8ff;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-        header {
-            margin-top: 20px;
-        }
-        header img {
-            max-width: 150px;
-            border-radius: 50%;
-        }
-        h1 {
-            background-color: #ffcccb;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            color: #fff;
-            text-shadow: 1px 1px 2px #333;
-            border-radius: 10px;
-        }
-        .chapter, .questions, .report-section {
-            background-color: #e0f7fa;
-            padding: 20px;
-            margin: 10px auto;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 700px;
-        }
-        button {
-            background-color: #0288d1;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-        button:hover {
-            background-color: #0277bd;
-        }
-    </style>
-</head>
-<body>
-
-    
-    <h1>شباب ثانوي بكنيسة نهضة القداسة بالحافظية ✨🙏</h1>
-    <div class="chapter">
-        <h2>📖 المقطع الكتابي</h2>
-        <p id="chapterText"></p>
-        <button id="confirmReading" onclick="confirmChapterRead()"> دوس هنا لو قريت الاصحاح ✅</button>
-    </div>
-    
-    <div class="questions">
-        <h2>💭 أسئلة اليوم</h2>
-        <div id="questionsContainer"></div>
-    </div>
-    
-    <div class="user-input">
-        <label for="userName">أدخل اسمك: 😊</label>
-        <input type="text" id="userName" placeholder="اسمك هنا" />
-        <br><br>
-        <button onclick="markAsCompleted()">إتمام الخلوة</button>
-        <p id="statusMessage"></p>
-    </div>
-    
-    <div class="report-section">
-        <h2>📜 تقرير الخلوة اليومية (للمسؤولين فقط)</h2>
-        <label for="adminPassword">أدخل كلمة مرور المسؤول:</label>
-        <input type="password" id="adminPassword" placeholder="********" />
-        <br><br>
-        <button onclick="generateReport()">إظهار تقرير اليوم</button>
-        <div id="reportContainer"></div>
-    </div>
+    <title>خلوة شباب ثانوي</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-<script>
-const firebaseConfig = {
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script>
+        // إعداد Firebase
+        const firebaseConfig = {
   apiKey: "AIzaSyCmpiBFNmEm9BTaOWS5S7blm6hBm75yiOw",
   authDomain: "daily-bible-reading-6903b.firebaseapp.com",
   projectId: "daily-bible-reading-6903b",
@@ -99,13 +21,80 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore(); // أو استخدام firebase.database() لـ Realtime Database
-</script>
+        // بيانات الأصحاحات
+        const chapters = {
+            '2024-10-09': {
+                chapter: 'يوحنا 11',
+                questions: [
+                    'ما هي المعجزة الرئيسية التي حدثت في هذا الأصحاح؟',
+                    'كيف أظهر يسوع قوته في هذا الأصحاح؟',
+                    'كيف يمكنك الاعتماد على إيمانك في الأوقات الصعبة كما فعلت مرثا؟'
+                ]
+            },
+            '2024-10-10': {
+                chapter: 'يوحنا 12',
+                questions: [
+                    'ما هي الرمزية وراء دهن مريم قدمي يسوع؟',
+                    'ما هو رد فعل التلاميذ تجاه سكب مريم الطيب؟',
+                    'كيف ترى دور التواضع في خدمة الآخرين؟'
+                ]
+            },
+            // استكمال باقي الأيام حتى نهاية السنة
+        };
 
+        // تحديد تاريخ اليوم
+        const today = new Date().toISOString().split('T')[0]; // تاريخ اليوم بالصيغة YYYY-MM-DD
 
-    <script src="script.js"></script>
+        // عرض الأصحاح والأسئلة بناءً على تاريخ اليوم
+        function loadChapter() {
+            if (chapters[today]) {
+                document.getElementById('chapter').innerText = `أصحاح اليوم: ${chapters[today].chapter}`;
+                const questionsList = document.getElementById('questions');
+                questionsList.innerHTML = '';
+                chapters[today].questions.forEach((question, index) => {
+                    const li = document.createElement('li');
+                    li.innerText = question;
+                    questionsList.appendChild(li);
+                });
+            } else {
+                document.getElementById('chapter').innerText = 'لا توجد بيانات لهذا اليوم.';
+            }
+        }
+
+        // التحقق من قراءة الأصحاح وإظهار الأسئلة
+        function confirmReading() {
+            const isChecked = document.getElementById('readConfirm').checked;
+            if (isChecked) {
+                document.getElementById('questionsSection').style.display = 'block';
+            } else {
+                alert('يرجى قراءة الأصحاح أولاً قبل الإجابة على الأسئلة.');
+            }
+        }
+
+        window.onload = function() {
+            loadChapter();
+        };
+    </script>
+</head>
+<body>
+    <h1>خلوة شباب ثانوي - بكنيسة نهضة القداسة بلحافظية</h1>
+
+    <div>
+        <h2 id="chapter"></h2>
+        <label>
+            <input type="checkbox" id="readConfirm"> لقد قرأت الأصحاح
+        </label>
+        <button onclick="confirmReading()">تأكيد</button>
+    </div>
+
+    <div id="questionsSection" style="display:none;">
+        <h3>أسئلة اليوم:</h3>
+        <ul id="questions"></ul>
+    </div>
+
 </body>
 </html>
